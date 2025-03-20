@@ -1,6 +1,6 @@
 import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Vpc, SecurityGroup, SubnetType, Port, InstanceType, InstanceClass, InstanceSize, IVpc, ISubnet } from 'aws-cdk-lib/aws-ec2';
+import { Vpc, SecurityGroup, SubnetType, Port } from 'aws-cdk-lib/aws-ec2';
 import { DatabaseCluster, DatabaseClusterEngine, AuroraPostgresEngineVersion, Credentials, ClusterInstance, DatabaseSecret } from 'aws-cdk-lib/aws-rds';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Function, Runtime, Code, LayerVersion } from 'aws-cdk-lib/aws-lambda';
