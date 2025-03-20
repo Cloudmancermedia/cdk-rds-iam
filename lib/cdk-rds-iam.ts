@@ -4,15 +4,13 @@ import { Vpc, SecurityGroup, SubnetType, Port, InstanceType, InstanceClass, Inst
 import { DatabaseCluster, DatabaseClusterEngine, AuroraPostgresEngineVersion, Credentials, ClusterInstance, DatabaseSecret } from 'aws-cdk-lib/aws-rds';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Function, Runtime, Code, LayerVersion } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import path from 'path';
-import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { InvocationType, Trigger } from 'aws-cdk-lib/triggers';
 
 const dbName = 'main_db';
 const dbRootUser = 'postgres_admin';
 const dbIamUser = 'db_iam_user';
 
-export class RdsLambdaIamStack extends Stack {
+export class CdkRdsIamStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
 
@@ -78,8 +76,8 @@ export class RdsLambdaIamStack extends Stack {
 
     const lambdaFunction = new Function(this, 'AuroraLambda', {
       runtime: Runtime.NODEJS_22_X,
-      code: Code.fromAsset('services'),
-      handler: 'handler.main',
+      code: Code.fromAsset('dist/services'),
+      handler: 'index.handler',
       timeout: Duration.seconds(10),
       layers: [pgLayer],
       vpc,
@@ -99,10 +97,16 @@ export class RdsLambdaIamStack extends Stack {
         'rds-db:connect',
       ],
       resources: [
-        `arn:aws:rds-db:${this.region}:${this.account}:dbRootUser:${cluster.clusterIdentifier}/${dbRootUser}`,
-        `arn:aws:rds-db:${this.region}:${this.account}:dbRootUser:${cluster.clusterResourceIdentifier}/${dbIamUser}`,
+        `arn:aws:rds-db:${this.region}:${this.account}:dbuser:${cluster.clusterResourceIdentifier}/${dbIamUser}`,
       ],
     }));
+
+    new Trigger(this, 'TriggerOnDeploy', {
+      executeAfter: [cluster],
+      handler: lambdaFunction,
+      invocationType: InvocationType.EVENT,
+      timeout: Duration.minutes(10),
+    });
 
   }
 }

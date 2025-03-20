@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/rds-lambda-iam.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/cdk-rds-iam.ts",
   "watch": {
     "include": [
       "**"
