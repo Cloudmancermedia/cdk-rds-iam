@@ -44,7 +44,7 @@ const createNewRdsClient = (dbHost: string, dbPort: number, dbName: string, dbUs
     host: dbHost,
     password: dbPassword,
     port: dbPort,
-    // ssl: { rejectUnauthorized: false },
+    ssl: { rejectUnauthorized: false },
     user: dbUser,
   });
 

@@ -77,7 +77,7 @@ export class CdkRdsIamStack extends Stack {
       runtime: Runtime.NODEJS_22_X,
       code: Code.fromAsset('dist/services'),
       handler: 'index.handler',
-      timeout: Duration.seconds(10),
+      timeout: Duration.seconds(30),
       layers: [pgLayer],
       vpc,
       securityGroups: [lambdaSecurityGroup],
