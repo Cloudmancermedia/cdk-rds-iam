@@ -1,7 +1,7 @@
 import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Vpc, SecurityGroup, SubnetType, Port } from 'aws-cdk-lib/aws-ec2';
-import { DatabaseCluster, DatabaseClusterEngine, AuroraPostgresEngineVersion, Credentials, ClusterInstance, DatabaseSecret } from 'aws-cdk-lib/aws-rds';
+import { DatabaseCluster, DatabaseClusterEngine, AuroraPostgresEngineVersion, Credentials, ClusterInstance } from 'aws-cdk-lib/aws-rds';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Function, Runtime, Code, LayerVersion } from 'aws-cdk-lib/aws-lambda';
 import { InvocationType, Trigger } from 'aws-cdk-lib/triggers';
@@ -30,19 +30,16 @@ export class CdkRdsIamStack extends Stack {
       ],
     });
 
-    // Security Group for Aurora
     const dbSecurityGroup = new SecurityGroup(this, 'AuroraSecurityGroup', {
       vpc,
       allowAllOutbound: true,
     });
 
-    // Security Group for Lambda
     const lambdaSecurityGroup = new SecurityGroup(this, 'LambdaSecurityGroup', {
       vpc,
       allowAllOutbound: true,
     });
 
-    // Allow Lambda to access Aurora on port 5432
     dbSecurityGroup.addIngressRule(lambdaSecurityGroup, Port.tcp(5432), 'Allow Lambda access');
 
     const credentials = Credentials.fromGeneratedSecret(dbRootUser);
@@ -65,6 +62,8 @@ export class CdkRdsIamStack extends Stack {
           scaleWithWriter: true,
         }),
       ],
+      serverlessV2MinCapacity: 0.5,
+      serverlessV2MaxCapacity: 2,
       iamAuthentication: true,
     });
   
@@ -88,10 +87,7 @@ export class CdkRdsIamStack extends Stack {
         REGION: process.env.CDK_DEFAULT_REGION ?? 'us-east-1',
       },
     });
-
-    // Allow Lambda to access Secrets Manager
     cluster.secret!.grantRead(lambdaFunction);
-    // Allow Lambda to connect to RDS using IAM
     lambdaFunction.addToRolePolicy(new PolicyStatement({
       actions: [
         'rds-db:connect',
@@ -107,6 +103,5 @@ export class CdkRdsIamStack extends Stack {
       invocationType: InvocationType.EVENT,
       timeout: Duration.minutes(10),
     });
-
   }
 }
